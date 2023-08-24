@@ -36,6 +36,12 @@ class User extends Authenticatable implements JWTSubject//, MustVerifyEmail
         'password' => 'hashed',
     ];
 
+
+    public function getDisplayNameAttribute(): string
+    {
+        return ucfirst($this->attributes['first_name']) . ' ' . ucfirst($this->attributes['last_name']);
+    }
+
     public function getJWTIdentifier(): mixed
     {
         return $this->getKey();
@@ -46,10 +52,10 @@ class User extends Authenticatable implements JWTSubject//, MustVerifyEmail
         return [];
     }
 
-    public function getLoadableRelations(): array
+    public static function getLoadableRelations(): array
     {
         return [
-            'roles' => 'role.view',
+            'roles' => 'users.roles.view',
         ];
     }
 }

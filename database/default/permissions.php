@@ -4,9 +4,22 @@ return [
     'roles' => [
         [
             'name' => 'admin',
-            'guard_name'=> 'api',
+            'guard_name' => 'api',
             'permissions' => [
                 'roles.assign.all',
+                'users.roles.view',
+                'users.view',
+                'users.show',
+                'users.create',
+                'users.update',
+                'users.delete'
+            ],
+        ],
+        [
+            'name' => 'editor',
+            'guard_name' => 'api',
+            'permissions' => [
+                'roles.assign.user',
                 'users.view',
                 'users.show',
                 'users.create',
@@ -16,7 +29,7 @@ return [
         ],
         [
             'name' => 'user',
-            'guard_name'=> 'api',
+            'guard_name' => 'api',
             'default' => true,
             'permissions' => [
                 'users.view'
@@ -24,7 +37,7 @@ return [
         ],
         [
             'name' => 'guest',
-            'guard_name'=> 'api',
+            'guard_name' => 'api',
             'guests' => true,
             'permissions' => [
             ],
@@ -65,6 +78,9 @@ return [
             [
                 'name' => 'delete',
                 'description' => 'Allow deleting any user on the site. User can request deletion of their own account without this permission.',
+            ], [
+                'name' => 'users.roles.view',
+                'description' => 'Allow viewing any user roles on the site.',
             ],
         ],
     ],

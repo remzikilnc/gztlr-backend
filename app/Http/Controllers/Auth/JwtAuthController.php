@@ -24,7 +24,8 @@ class JwtAuthController extends Controller
     public function register(RegisterUserRequest $request): JsonResponse
     {
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password)
         ]);
@@ -43,8 +44,7 @@ class JwtAuthController extends Controller
      */
     public function login(LoginUserRequest $request): JsonResponse
     {
-        $credentials = $request->only(['email', 'password']);
-        $token = Auth::attempt($credentials);
+        $token = Auth::attempt($request->only(['email', 'password']));
 
         if (!$token) {
             return response()->error('wrong-credentials');

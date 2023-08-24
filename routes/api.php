@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,4 +21,4 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:api', 'verified'])->group(function () {
         Route::apiResource('users', UserController::class);
     });
-});
+})->middleware('throttle-api:api');

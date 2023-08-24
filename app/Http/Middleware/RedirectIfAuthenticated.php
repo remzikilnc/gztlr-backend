@@ -21,6 +21,9 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->forbidden('You are already logged in.');
+                }
                 return redirect(RouteServiceProvider::HOME);
             }
         }

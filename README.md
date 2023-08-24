@@ -12,7 +12,8 @@ repository [here](https://github.com/remzikilnc/pames-front).
 - RESTful API
 - [Spatie / Laravel Permission](https://spatie.be/docs/laravel-permission/)
 
-
+## Needs
+- php sodium
 
 ## Endpoints
 
@@ -21,7 +22,6 @@ Authentication:
 - /api/v1/register
 - /api/v1/token/refresh
 - /api/v1/forgot-password
-- /api/v1/reset-password
 
 Needs authentication:
 - /api/v1/reset-password
