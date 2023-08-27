@@ -7,7 +7,7 @@ use App\Http\Requests\User\CreateUserRequest;
 use App\Http\Requests\User\ModifyUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
-use App\Services\UserService;
+use App\Services\User\UserService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -27,7 +27,11 @@ class UserController extends Controller
 
     public function index()
     {
-        return $this->request->user()->hasPermissionTo('users.view');
+        $this->request->user()->hasPermissionTo('users.view');
+
+        $users = $this->userService->index();
+
+        return response()->ok(['users' => $users]);
     }
 
     public function store(ModifyUserRequest $request)

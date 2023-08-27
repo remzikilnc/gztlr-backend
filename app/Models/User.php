@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Scout\Searchable;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
@@ -16,6 +16,7 @@ class User extends Authenticatable implements JWTSubject//, MustVerifyEmail
     use HasFactory;
     use Notifiable;
     use HasRoles;
+    use Searchable;
 
     protected $fillable = [
         'first_name',
@@ -58,4 +59,16 @@ class User extends Authenticatable implements JWTSubject//, MustVerifyEmail
             'roles' => 'users.roles.view',
         ];
     }
+
+    public function toSearchableArray()
+    {
+        return [
+            'id' => $this->id,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'display_name' => $this->display_name,
+            'email' => $this->email,
+        ];
+    }
+
 }

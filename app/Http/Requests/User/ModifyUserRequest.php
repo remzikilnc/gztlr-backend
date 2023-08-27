@@ -9,7 +9,7 @@ class ModifyUserRequest extends BaseFormRequest
 {
     public function rules(): array
     {
-        $except = $this->getMethod() === 'PUT' ? $this->route('user')->id : '';
+        $except = $this->getMethod() === 'PUT' ? $this->route('user')->id : 0;
 
         $rules = [
             'first_name'      => "min:2|max:255|nullable",
