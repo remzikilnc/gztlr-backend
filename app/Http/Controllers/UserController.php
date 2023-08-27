@@ -7,10 +7,9 @@ use App\Http\Requests\User\CreateUserRequest;
 use App\Http\Requests\User\ModifyUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
-use App\Services\User\UserService;
+use App\Services\UserService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
 {
