@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
         app(PermissionsTableSeeder::class)->__invoke();
         app(RolesTableSeeder::class)->__invoke();
 
+        User::factory(15)->create();
+
         // admin user 1
         $admin = User::create([
             'first_name' => 'remzi',

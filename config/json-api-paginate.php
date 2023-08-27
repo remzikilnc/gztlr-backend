@@ -51,6 +51,7 @@ return [
      */
     'base_url' => null,
 
+
     /*
      * The name of the query parameter used for pagination
      */

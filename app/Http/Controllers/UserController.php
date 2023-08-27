@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\UsersDeleted;
-use App\Http\Requests\User\CreateUserRequest;
 use App\Http\Requests\User\ModifyUserRequest;
-use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -30,7 +28,7 @@ class UserController extends Controller
 
         $users = $this->userService->index();
 
-        return response()->ok(['users' => $users]);
+        return response()->ok($users);
     }
 
     public function store(ModifyUserRequest $request)

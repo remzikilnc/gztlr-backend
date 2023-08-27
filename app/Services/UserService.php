@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
+use Exception;
 use App\Events\UserCreated;
 use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
+use App\Repositories\UserRepository;
 use App\Traits\AuthorizedRelationLoader;
-use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -18,21 +19,28 @@ class UserService
 {
     use AuthorizedRelationLoader;
 
-    protected $user;
-    protected $role;
-    protected $permission;
+    protected User $user;
+    protected Role $role;
+    protected Permission $permission;
+    protected UserRepository $userRepository;
 
-    public function __construct(User $user, Role $role, Permission $permission)
+    public function __construct(User $user,UserRepository $userRepository, Role $role, Permission $permission)
     {
         $this->user = $user;
         $this->role = $role;
         $this->permission = $permission;
+        $this->userRepository = $userRepository ;
     }
 
-    public function index(array $params)
+    public function index()
     {
-        $paginatedUsers = app(PaginateUsers::class)->execute($params);
-        return UserResource::collection($paginatedUsers->items());
+        $params = [];
+
+        if (auth()->user()->can('users.roles.view')) {
+            $params['includes'] = ['roles'];
+        }
+
+        return app(UserRepository::class)->getAllUsersPaginated($params);
     }
 
     /**
