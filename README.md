@@ -11,6 +11,8 @@ repository [here](https://github.com/remzikilnc/pames-front).
 ## Features
 - RESTful API
 - [Spatie / Laravel Permission](https://spatie.be/docs/laravel-permission/)
+- [Spatie / Laravel Query Builder](https://spatie.be/docs/laravel-query-builder/v5/)
+- [Spatie / Laravel JSON Api Paginate](https://github.com/spatie/laravel-json-api-paginate)
 
 ## Needs
 - php sodium
@@ -27,7 +29,7 @@ Needs authentication:
 - /api/v1/reset-password
 - /api/v1/email/verification-notification
 - /api/v1/logout
-- [RESOURCE] /api/v1/**users**
+- [RESOURCE] /api/v1/**users**   -> Allows JSON API compliant filtering and pagination. Example: /users?page[size]=4&page[number]=1&filter[first_name]=r&filter[roles.name]=editor
 
 ## Installation
 

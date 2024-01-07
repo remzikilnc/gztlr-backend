@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Game;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -34,5 +35,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $user->assignRole('user');
+
+
+        Game::factory(5)->create();
     }
 }

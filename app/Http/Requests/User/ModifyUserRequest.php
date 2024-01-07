@@ -12,16 +12,19 @@ class ModifyUserRequest extends BaseFormRequest
         $except = $this->getMethod() === 'PUT' ? $this->route('user')->id : 0;
 
         $rules = [
-            'first_name'      => "min:2|max:255|nullable",
-            'last_name'       => "min:2|max:255|nullable",
-            'password'        => 'min:3|max:255',
-            'email'           => "email|min:3|max:255|unique:users,email,$except",
+            'first_name' => "min:2|max:255|nullable",
+            'last_name' => "min:2|max:255|nullable",
+            'password' => 'min:3|max:255|nullable',
+            'email' => "email|min:3|max:255|unique:users,email,$except",
             'email_verified_at' => 'date_format:Y-m-d H:i:s',
+            'roles' => 'array',
+            'roles.*' => 'exists:roles,name',
+            'status' => 'boolean'
         ];
 
         if ($this->method() === 'POST') {
-            $rules['email']    = 'required|'.$rules['email'];
-            $rules['password'] = 'required|'.$rules['password'];
+            $rules['email'] = 'required|' . $rules['email'];
+            $rules['password'] = 'required|' . $rules['password'];
         }
 
         return $rules;

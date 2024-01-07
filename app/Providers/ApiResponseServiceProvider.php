@@ -32,12 +32,12 @@ class ApiResponseServiceProvider extends ServiceProvider
     {
         $instance = $this;
         Response::macro('ok', function ($data = []) {
-            return Response::json(['success' => true, 'data' => $data], 200);
+            return Response::json($data, 200);
         });
 
         Response::macro('created', function ($data = []) {
             if (count($data)) {
-                return Response::json(['data' => $data], 201);
+                return Response::json($data, 201);
             }
             return Response::json([], 201);
         });

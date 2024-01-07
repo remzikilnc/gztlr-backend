@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\UsersDeleted;
 use App\Http\Requests\User\ModifyUserRequest;
 use App\Models\User;
 use App\Services\UserService;
@@ -24,13 +23,16 @@ class UserController extends Controller
 
     public function index()
     {
-        $this->request->user()->hasPermissionTo('users.view');
+        $this->authorize('view', $this->request->user());
 
         $users = $this->userService->index();
 
         return response()->ok($users);
     }
 
+    /**
+     * @throws AuthorizationException
+     */
     public function store(ModifyUserRequest $request)
     {
         $this->authorize('create', $request->user());
@@ -40,13 +42,16 @@ class UserController extends Controller
         return response()->ok(['user' => $user]);
     }
 
+    /**
+     * @throws AuthorizationException
+     */
     public function show(User $user)
     {
         $this->authorize('show', $user);
 
-        $this->userService->show($user, $this->request->get('with', ''));
+        $response = $this->userService->show($user, $this->request->get('with', ''));
 
-        return response()->ok(['user' => $user]);
+        return response()->ok(['user' => $response]);
     }
 
     /**
@@ -56,19 +61,32 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $user = $this->userService->update($user, $request->all());
+        $filteredData = array_filter($request->all(), fn($value) => !is_null($value) && $value !== '');
 
-        return response()->ok(['user' => $user]);
+        $response = $this->userService->update($user, $filteredData);
+
+        return response()->ok($response);
+    }
+
+    public function statistics()
+    {
+        $this->authorize('statistics', $this->request->user());
+
+        $response = $this->userService->statistics();
+
+        return response()->ok($response);
     }
 
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);
 
-        $user->roles()->detach();
-        $user->permissions()->detach();
-        $user->delete();
-        event(new UsersDeleted($user));
+        if ($user->id === $this->request->user()->id) {
+            return response()->badRequest('You cannot delete yourself.');
+        }
+
+        $this->userService->destroy($user);
+
         return response()->noContent();
     }
 }

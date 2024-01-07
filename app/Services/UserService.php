@@ -2,14 +2,17 @@
 
 namespace App\Services;
 
-use Exception;
-use App\Events\UserCreated;
+use App\Events\User\UserCreated;
+use App\Events\User\UserDeleted;
 use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use App\Traits\AuthorizedRelationLoader;
+use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
@@ -34,13 +37,7 @@ class UserService
 
     public function index()
     {
-        $params = [];
-
-        if (auth()->user()->can('users.roles.view')) {
-            $params['includes'] = ['roles'];
-        }
-
-        return app(UserRepository::class)->getAllUsersPaginated($params);
+        return app(UserRepository::class)->getAllUsersPaginated();
     }
 
     /**
@@ -61,7 +58,7 @@ class UserService
 
         event(new UserCreated($user));
 
-        return new UserResource($user->fresh());
+        return new UserResource($user);
     }
 
     public function show(User $user, string $requestedRelations): UserResource
@@ -73,9 +70,9 @@ class UserService
         return new UserResource($user);
     }
 
-    public function update(User $user, array $params): UserResource
+    public function update(User $user, array $params)
     {
-        $filteredParams = collect($params)->except('email_verified_at')->toArray(); //fill without email_verified_at
+        $filteredParams = collect($params)->except('email_verified_at')->toArray();
         $user->fill($filteredParams);
         $params = collect($params);
 
@@ -83,7 +80,6 @@ class UserService
             $user->email_verified_at = null;
             // $user->sendEmailVerificationNotification();
         }
-
         if ($user->isDirty('password')) {
             $user->password = Hash::make($params->get('password'));
         }
@@ -95,16 +91,54 @@ class UserService
         }
 
         if ($params->has('roles')) {
-            $rolesSaved = $this->syncRoles($user, $params->get('roles'));
+           $this->syncRoles($user, $params->get('roles'));
         }
 
         $user->save();
 
-        return new UserResource(
-            isset($rolesSaved) && $rolesSaved ? $user->fresh()->load('roles') : $user->fresh()
-        );
+        return new UserResource($user->fresh());
     }
 
+    public function statistics() {
+        $result = DB::select(
+              "SELECT
+                        COUNT(*) as total_users,
+                        SUM(CASE WHEN status = true THEN 1 ELSE 0 END) as active_users,
+                        SUM(CASE WHEN status = false THEN 1 ELSE 0 END) as inactive_users,
+                        SUM(CASE WHEN created_at >= CURRENT_DATE - INTERVAL 7 DAY THEN 1 ELSE 0 END) as new_users_last_7_days,
+                        SUM(CASE WHEN created_at < CURRENT_DATE - INTERVAL 7 DAY AND created_at >= CURRENT_DATE - INTERVAL 14 DAY THEN 1 ELSE 0 END) as new_users_previous_7_days
+                    FROM users;"
+        );
+
+        $newUsersLast7Days = $result[0]->new_users_last_7_days;
+        $newUsersPrevious7Days = $result[0]->new_users_previous_7_days;
+
+        if ($newUsersPrevious7Days == 0) {
+            $userGrowthPercentageComparedToLastWeek = $newUsersLast7Days > 0 ? 100 : 0;
+        } else {
+            $userGrowthPercentageComparedToLastWeek = (($newUsersLast7Days - $newUsersPrevious7Days) / $newUsersPrevious7Days) * 100;
+        }
+
+        return [
+            'total_users' => $result[0]->total_users,
+            'active_users' => $result[0]->active_users,
+            'inactive_users' => $result[0]->inactive_users,
+            'new_users_last_7_days' => $result[0]->new_users_last_7_days,
+            'new_users_previous_7_days' => $result[0]->new_users_previous_7_days,
+            'user_growth_percentage_compared_to_last_week' => number_format($userGrowthPercentageComparedToLastWeek, 2),
+        ];
+    }
+
+    public function destroy(User $user){
+        $user->roles()->detach();
+        $user->permissions()->detach();
+        $user->delete();
+        event(new UserDeleted($user));
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
     protected function syncRoles(User $user, array $roles): bool|User
     {
         $validRoles = $this->filterValidRoles($roles);
@@ -120,7 +154,7 @@ class UserService
                 $allowedRoles[] = $role;
             } else {
                 Log::warning("User with ID: " . Auth::id() . " tried to assign the role: {$role} without permission.");
-                return false;
+                throw new AuthorizationException('You do not have permission to assign this role.');
             }
         }
 
@@ -147,7 +181,7 @@ class UserService
 
     private function assignDefaultRole(User $user): void
     {
-        $defaultRole = $this->role->getDefaultRoleForApi();
+        $defaultRole = $this->role->getDefaultRole();
 
         if ($defaultRole) {
             $user->assignRole($defaultRole);

@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\UsersDeleted;
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -15,7 +12,7 @@ use Illuminate\Validation\Rules\Password;
 class ProfileController extends Controller
 {
 
-    public function update(Request $request)
+    public function update(Request $request): Response
     {
         $validated = $request->validate([
             'first_name' => ['string', 'max:255'],
@@ -30,7 +27,7 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
-
+        return response()->noContent();
     }
 
     /**
@@ -49,14 +46,12 @@ class ProfileController extends Controller
         $user->roles()->detach();
         $user->permissions()->detach();
         $user->delete();
-        event(new UsersDeleted($user));
+        // event(new UsersDeleted($user));
 
         return response()->noContent();
     }
 
-
-
-    public function passwordChange(Request $request)
+    public function passwordChange(Request $request): Response
     {
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],

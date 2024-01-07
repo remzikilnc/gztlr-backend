@@ -3,23 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Laravel\Scout\Searchable;
 use Spatie\Permission\Traits\HasRoles;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject//, MustVerifyEmail
+class User extends BaseUserModel//, MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, Searchable;
+    use HasFactory, Notifiable, HasRoles, Searchable;
 
     protected $fillable = [
         'first_name',
         'last_name',
         'email',
         'password',
-        'email_verified_at'
+        'email_verified_at',
+        'status'
     ];
 
     protected $hidden = [
@@ -33,6 +31,7 @@ class User extends Authenticatable implements JWTSubject//, MustVerifyEmail
         'password' => 'hashed',
     ];
 
+    protected $appends = ['display_name'];
 
     public function getDisplayNameAttribute(): string
     {
@@ -49,14 +48,14 @@ class User extends Authenticatable implements JWTSubject//, MustVerifyEmail
         return [];
     }
 
-    public static function getLoadableRelations(): array
+    public function scopeSearch($query, $value)
     {
-        return [
-            'roles' => 'users.roles.view',
-        ];
+        return $query->where('first_name', 'like', '%'.$value.'%')
+            ->orWhere('last_name', 'like', '%'.$value.'%')
+            ->orWhere('email', 'like', '%'.$value.'%');
     }
 
-    public function toSearchableArray()
+    public function toSearchableArray(): array
     {
         return [
             'id' => $this->id,
@@ -67,4 +66,17 @@ class User extends Authenticatable implements JWTSubject//, MustVerifyEmail
         ];
     }
 
+    /**
+     * @return array
+     * Array key is relation name
+     * Array value is permission name
+     * Array value can be blank if no permission is required
+     * @example 'relation_name' => 'permission_name'
+     */
+    public static function getLoadableRelations(): array
+    {
+        return [
+            'roles' => 'users.roles.view',
+        ];
+    }
 }

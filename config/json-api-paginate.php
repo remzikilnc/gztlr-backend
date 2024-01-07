@@ -22,7 +22,7 @@ return [
     /*
      * The key of the page[x] query string parameter for page size.
      */
-    'size_parameter' => 'size',
+    'size_parameter' => 'limit',
 
     /*
      * The key of the page[x] query string parameter for cursor.

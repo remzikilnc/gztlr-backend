@@ -6,23 +6,13 @@ use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
 {
-    public function getGuestRoleForApi()
+    public function getGuestRole()
     {
         return $this->where('guests', 1)->where('guard_name', 'api')->first();;
     }
 
-    public function getDefaultRoleForApi()
+    public function getDefaultRole()
     {
         return $this->where('default', 1)->where('guard_name', 'api')->first();
-    }
-
-    public function getGuestAttribute($value): bool
-    {
-        return $value === 't';
-    }
-
-    public function getDefaultAttribute($value): bool
-    {
-        return $value === 't';
     }
 }

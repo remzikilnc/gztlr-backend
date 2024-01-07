@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Role;
 
 class Controller extends BaseController
 {
@@ -23,7 +23,7 @@ class Controller extends BaseController
         } else {
             $guest = new User();
             $guest->forceFill(['id' => -1]);
-            $guestRole = Role::getGuestRoleForApi();
+            $guestRole = app(Role::class)->getGuestRole();
             if ($guestRole) {
                 $guest->setRelation('roles', collect([$guestRole]));
             }

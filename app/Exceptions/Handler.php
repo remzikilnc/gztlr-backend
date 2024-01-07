@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -51,5 +52,9 @@ class Handler extends ExceptionHandler
         $this->renderable(function (ModelNotFoundException  $e, $request) {
             return response()->notFound();
         });
+/*
+        $this->renderable(function (QueryException  $e, $request) {
+            return response()->internalServerError('A query error occured');
+        });*/
     }
 }
