@@ -1,12 +1,11 @@
-## Pames Backend
-
-Backend for a game price comparison platform, built with Laravel.
+## gztlr backend
+built with Laravel.
 
 ## Next.js frontend
 
 Frontend created using [Next.js](https://nextjs.org/), [Tailwind CSS](https://tailwindcss.com/)
 and [NextAuth](https://next-auth.js.org/). You can find the
-repository [here](https://github.com/remzikilnc/pames-front).
+repository [here](https://github.com/remzikilnc/gztlr-front).
 
 ## Features
 - RESTful API
