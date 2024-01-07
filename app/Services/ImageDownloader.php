@@ -2,17 +2,14 @@
 
 namespace App\Services;
 
-use App\Actions\File\UploadFile;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class ImageDownloader
+class ImageDownloader extends BaseService
 {
     private Client $http;
-
     public function __construct(Client $http)
     {
         $this->http = $http;

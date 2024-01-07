@@ -11,7 +11,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         app(PermissionsTableSeeder::class)->__invoke();
+
         app(RolesTableSeeder::class)->__invoke();
+
+        app(CitySeeder::class)->__invoke();
 
         User::factory(15)->create();
 

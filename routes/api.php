@@ -46,4 +46,9 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('permission', PermissionController::class);
     });
 
+    Route::get('cities', [CityController::class, 'index']);
+    Route::get('cities/{city}', [CityController::class, 'show']);
+
+    Route::get('weathers/{city}', [WeatherController::class, 'index']);
+    Route::get('weathers/{city}/{weather}', [WeatherController::class, 'show']);
 })->middleware(['throttle-api:api', 'api']);

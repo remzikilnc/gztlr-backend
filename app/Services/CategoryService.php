@@ -6,7 +6,7 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Repositories\CategoryRepository;
 
-class CategoryService
+class CategoryService extends BaseService
 {
     protected CategoryRepository $categoryRepository;
     protected Category $category;
@@ -27,9 +27,7 @@ class CategoryService
     public function update(Category $category, array $params): CategoryResource
     {
         $category->fill($params);
-
         $category->save();
-
         return new CategoryResource($category->fresh());
     }
 }

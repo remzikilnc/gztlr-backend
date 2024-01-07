@@ -8,9 +8,9 @@ use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
 use App\Repositories\UserRepository;
-use App\Traits\AuthorizedRelationLoader;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -18,21 +18,19 @@ use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Spatie\Permission\Models\Permission;
 
-class UserService
+class UserService extends BaseService
 {
-    use AuthorizedRelationLoader;
-
     protected User $user;
     protected Role $role;
     protected Permission $permission;
     protected UserRepository $userRepository;
 
-    public function __construct(User $user,UserRepository $userRepository, Role $role, Permission $permission)
+    public function __construct(User $user, UserRepository $userRepository, Role $role, Permission $permission)
     {
         $this->user = $user;
         $this->role = $role;
         $this->permission = $permission;
-        $this->userRepository = $userRepository ;
+        $this->userRepository = $userRepository;
     }
 
     public function index()
@@ -43,7 +41,7 @@ class UserService
     /**
      * @throws Exception
      */
-    public function create(array $params)
+    public function create(array $params): UserResource
     {
         $user = $this->user->create($params);
         $params = collect($params);
@@ -70,7 +68,7 @@ class UserService
         return new UserResource($user);
     }
 
-    public function update(User $user, array $params)
+    public function update(User $user, array $params): UserResource
     {
         $filteredParams = collect($params)->except('email_verified_at')->toArray();
         $user->fill($filteredParams);
@@ -91,7 +89,7 @@ class UserService
         }
 
         if ($params->has('roles')) {
-           $this->syncRoles($user, $params->get('roles'));
+            $this->syncRoles($user, $params->get('roles'));
         }
 
         $user->save();
@@ -99,37 +97,14 @@ class UserService
         return new UserResource($user->fresh());
     }
 
-    public function statistics() {
-        $result = DB::select(
-              "SELECT
-                        COUNT(*) as total_users,
-                        SUM(CASE WHEN status = true THEN 1 ELSE 0 END) as active_users,
-                        SUM(CASE WHEN status = false THEN 1 ELSE 0 END) as inactive_users,
-                        SUM(CASE WHEN created_at >= CURRENT_DATE - INTERVAL 7 DAY THEN 1 ELSE 0 END) as new_users_last_7_days,
-                        SUM(CASE WHEN created_at < CURRENT_DATE - INTERVAL 7 DAY AND created_at >= CURRENT_DATE - INTERVAL 14 DAY THEN 1 ELSE 0 END) as new_users_previous_7_days
-                    FROM users;"
-        );
-
-        $newUsersLast7Days = $result[0]->new_users_last_7_days;
-        $newUsersPrevious7Days = $result[0]->new_users_previous_7_days;
-
-        if ($newUsersPrevious7Days == 0) {
-            $userGrowthPercentageComparedToLastWeek = $newUsersLast7Days > 0 ? 100 : 0;
-        } else {
-            $userGrowthPercentageComparedToLastWeek = (($newUsersLast7Days - $newUsersPrevious7Days) / $newUsersPrevious7Days) * 100;
-        }
-
-        return [
-            'total_users' => $result[0]->total_users,
-            'active_users' => $result[0]->active_users,
-            'inactive_users' => $result[0]->inactive_users,
-            'new_users_last_7_days' => $result[0]->new_users_last_7_days,
-            'new_users_previous_7_days' => $result[0]->new_users_previous_7_days,
-            'user_growth_percentage_compared_to_last_week' => number_format($userGrowthPercentageComparedToLastWeek, 2),
-        ];
+    public function statistics(): array
+    {
+        //return $this->registeredUsersForGivenWeeks();
+        return $this->getLastTwoWeeksData();
     }
 
-    public function destroy(User $user){
+    public function destroy(User $user): void
+    {
         $user->roles()->detach();
         $user->permissions()->detach();
         $user->delete();
@@ -186,5 +161,48 @@ class UserService
         if ($defaultRole) {
             $user->assignRole($defaultRole);
         }
+    }
+
+
+    public function registeredUsersForGivenWeeks(int $numberOfWeeks = 8): array
+    {
+        $weeks = [];
+        for ($i = 0; $i < $numberOfWeeks; $i++) {
+            $weekStart = Carbon::now()->subWeeks($i)->startOfWeek();
+            $weekEnd = Carbon::now()->subWeeks($i)->endOfWeek();
+            $weeks[] = $this->userRepository->getRegisteredUsersForGivenWeek($weekStart, $weekEnd);
+        }
+        return $weeks;
+    }
+
+    private function getLastTwoWeeksData(): array
+    {
+        $result = DB::select(
+            "SELECT
+                        COUNT(*) as total_users,
+                        SUM(CASE WHEN status = true THEN 1 ELSE 0 END) as active_users,
+                        SUM(CASE WHEN status = false THEN 1 ELSE 0 END) as inactive_users,
+                        SUM(CASE WHEN created_at >= CURRENT_DATE - INTERVAL 7 DAY THEN 1 ELSE 0 END) as new_users_last_7_days,
+                        SUM(CASE WHEN created_at < CURRENT_DATE - INTERVAL 7 DAY AND created_at >= CURRENT_DATE - INTERVAL 14 DAY THEN 1 ELSE 0 END) as new_users_previous_7_days
+                    FROM users;"
+        );
+
+        $newUsersLast7Days = $result[0]->new_users_last_7_days;
+        $newUsersPrevious7Days = $result[0]->new_users_previous_7_days;
+
+        if ($newUsersPrevious7Days == 0) {
+            $userGrowthPercentageComparedToLastWeek = $newUsersLast7Days > 0 ? 100 : 0;
+        } else {
+            $userGrowthPercentageComparedToLastWeek = (($newUsersLast7Days - $newUsersPrevious7Days) / $newUsersPrevious7Days) * 100;
+        }
+
+        return [
+            'total_users' => $result[0]->total_users,
+            'active_users' => $result[0]->active_users,
+            'inactive_users' => $result[0]->inactive_users,
+            'new_users_last_7_days' => $result[0]->new_users_last_7_days,
+            'new_users_previous_7_days' => $result[0]->new_users_previous_7_days,
+            'user_growth_percentage_compared_to_last_week' => number_format($userGrowthPercentageComparedToLastWeek, 2),
+        ];
     }
 }

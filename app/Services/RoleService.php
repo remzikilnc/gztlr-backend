@@ -8,9 +8,8 @@ use App\Http\Resources\RoleResource;
 use App\Models\Role;
 use App\Repositories\RoleRepository;
 
-class RoleService
+class RoleService extends BaseService
 {
-
     protected Role $role;
     protected RoleRepository $roleRepository;
 
@@ -25,13 +24,10 @@ class RoleService
         return app(RoleRepository::class)->getAllRolesPaginated();
     }
 
-
-    public function create(array $params)
+    public function create(array $params): RoleResource
     {
         $role = $this->role->create($params);
-
         event(new RoleCreated($role));
-
         return new RoleResource($role->fresh());
     }
 
@@ -43,17 +39,14 @@ class RoleService
     public function update(Role $role, array $params): RoleResource
     {
         $role->fill($params);
-
         $role->save();
-
         return new RoleResource($role->fresh());
     }
 
-    public function destroy(Role $role){
+    public function destroy(Role $role): void
+    {
         $role->users()->detach();
-
         $role->delete();
-
         event(new RoleDeleted($role));
     }
 }

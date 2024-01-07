@@ -6,9 +6,8 @@ use App\Http\Resources\PermissionResource;
 use App\Models\Permission;
 use App\Repositories\PermissionRepository;
 
-class PermissionService
+class PermissionService extends BaseService
 {
-
     protected Permission $permission;
     protected PermissionRepository $roleRepository;
 

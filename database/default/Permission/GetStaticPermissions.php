@@ -1,10 +1,6 @@
 <?php
 
-namespace Database\Default;
-
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+namespace Database\Default\Permission;
 
 class GetStaticPermissions
 {
