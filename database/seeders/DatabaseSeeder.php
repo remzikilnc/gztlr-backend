@@ -38,8 +38,5 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $user->assignRole('user');
-
-
-        Game::factory(5)->create();
     }
 }

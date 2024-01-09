@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Http;
 class FetchWeatherFromApiWithCoordinate extends Command
 {
     public const API_URL = 'https://api.openweathermap.org/data/2.5/onecall?lat=%s&lon=%s&appid=%s&units=metric';
-    public const API_KEY = 'e90242bb20a2dbd9d0be3d7abca52376';
 
     /**
      *
@@ -33,15 +32,15 @@ class FetchWeatherFromApiWithCoordinate extends Command
     /**
      * Execute the console command.
      */
-    public function handle(City $city)
+    public function handle(City $model)
     {
-        $city = $city->where('name', 'Adana')->first();
-        $this->city = $city;
-        $data = $this->getWeatherDailyWeathers($city);
-        $city->weather()->delete();
-        $city->weather()->createMany($data);
-        $this->info('Weather data updated for ' . $city->name);
-
+        foreach ($model->all() as $city) {
+            $this->city = $city;
+            $data = $this->getWeatherDailyWeathers($city);
+            $city->weather()->delete();
+            $city->weather()->createMany($data);
+            $this->info('Weather data updated for ' . $city->name);
+        }
     }
 
     private function getWeather(City $city): array
@@ -61,7 +60,7 @@ class FetchWeatherFromApiWithCoordinate extends Command
 
     private function getApiKey(): string
     {
-        return self::API_KEY;
+        return env('OPEN_WEATHER_API_KEY');
     }
 
     /*foreach ($response['daily'] as $key => $value) {
